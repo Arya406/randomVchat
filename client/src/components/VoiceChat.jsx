@@ -3,9 +3,7 @@ import io from "socket.io-client";
 
 const socket = io("https://randomvchat-1.onrender.com");
 
-function VoiceChat() {
-  // Possible states:
-  // 'idle' | 'requesting-mic' | 'searching' | 'connected' | 'partner-disconnected' | 'ended'
+function VoiceChat({ onGoHome }) {
   const [state, setState] = useState("idle");
 
   const localStream = useRef(null);
@@ -43,7 +41,6 @@ function VoiceChat() {
     });
 
     socket.on("partner-disconnected", () => {
-      console.log("Partner left");
       setState("partner-disconnected");
       cleanup();
     });
@@ -58,13 +55,20 @@ function VoiceChat() {
   const start = async () => {
     try {
       setState("requesting-mic");
-      localStream.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      localStream.current = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+
+      // Unlock audio for autoplay policy (keeping your fix)
+      const dummy = new Audio();
+      await dummy.play().catch(() => {});
+
       setState("searching");
       socket.emit("start");
     } catch (err) {
       console.error(err);
-      setState("idle"); // go back, show error maybe?
-      // You could add a toast or message here
+      setState("idle");
     }
   };
 
@@ -72,13 +76,7 @@ function VoiceChat() {
     console.log("Starting WebRTC");
 
     if (!localStream.current) {
-      try {
-        localStream.current = await navigator.mediaDevices.getUserMedia({ audio: true });
-      } catch (err) {
-        console.error("Mic error:", err);
-        setState("idle");
-        return;
-      }
+      localStream.current = await navigator.mediaDevices.getUserMedia({ audio: true });
     }
 
     if (peerConnection.current) {
@@ -87,55 +85,65 @@ function VoiceChat() {
     }
 
     peerConnection.current = new RTCPeerConnection({
-        iceServers: [
-          { urls: "stun:stun.l.google.com:19302" },
-      
-          {
-            urls: "turn:openrelay.metered.ca:80",
-            username: "openrelayproject",
-            credential: "openrelayproject"
-          },
-          {
-            urls: "turn:openrelay.metered.ca:443",
-            username: "openrelayproject",
-            credential: "openrelayproject"
-          }
-        ]
-      });
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        {
+          urls: [
+            "turn:openrelay.metered.ca:80",
+            "turn:openrelay.metered.ca:443",
+            "turn:openrelay.metered.ca:3478",
+          ],
+          username: "openrelayproject",
+          credential: "openrelayproject",
+        },
+      ],
+    });
+
+    localStream.current.getTracks().forEach((track) => {
+      peerConnection.current.addTrack(track, localStream.current);
+    });
+
+    peerConnection.current.ontrack = (event) => {
+      console.log("Receiving audio stream");
+
+      let audio = document.getElementById("remoteAudio");
+      if (!audio) {
+        audio = document.createElement("audio");
+        audio.id = "remoteAudio";
+        audio.autoplay = true;
+        audio.playsInline = true;
+        document.body.appendChild(audio);
+      }
+      audio.srcObject = event.streams[0];
+      audio.play().catch((e) => console.log("Audio play blocked:", e));
+    };
+
+    peerConnection.current.oniceconnectionstatechange = () => {
+      console.log("ICE STATE:", peerConnection.current.iceConnectionState);
+    };
 
     peerConnection.current.onicecandidate = (event) => {
       if (event.candidate) {
+        console.log("CANDIDATE:", event.candidate.candidate);
         socket.emit("signal", { candidate: event.candidate });
       }
     };
 
     if (isCaller) {
       const offer = await peerConnection.current.createOffer();
-      if (peerConnection.current.signalingState === "stable") {
-        await peerConnection.current.setLocalDescription(offer);
-        socket.emit("signal", offer);
-      }
+      await peerConnection.current.setLocalDescription(offer);
+      socket.emit("signal", offer);
     }
   };
 
   const next = () => {
-    console.log("Next clicked");
     cleanup();
     setState("searching");
     socket.emit("next");
   };
 
-  const cleanup = () => {
-    if (peerConnection.current) {
-      peerConnection.current.close();
-      peerConnection.current = null;
-    }
-    isStarted.current = false;
-  };
-
   const stop = () => {
-    console.log("Stop clicked");
-    socket.emit("next"); // disconnect partner
+    socket.emit("stop");
 
     if (peerConnection.current) {
       peerConnection.current.close();
@@ -151,7 +159,15 @@ function VoiceChat() {
     setState("ended");
   };
 
-  // ---- Render helpers ----
+  const cleanup = () => {
+    if (peerConnection.current) {
+      peerConnection.current.close();
+      peerConnection.current = null;
+    }
+    isStarted.current = false;
+  };
+
+  // ---- Render states exactly as in the beautiful UI ----
 
   const renderIdle = () => (
     <div className="text-center space-y-6">
@@ -197,7 +213,6 @@ function VoiceChat() {
 
   const renderConnected = () => (
     <div className="text-center space-y-6">
-      {/* Connected animation – sound waves */}
       <div className="flex justify-center items-center space-x-3">
         <div className="w-3 h-8 bg-gradient-to-t from-purple-500 to-pink-400 rounded-full animate-pulse" />
         <div className="w-3 h-12 bg-gradient-to-t from-purple-500 to-pink-400 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }} />
@@ -273,13 +288,25 @@ function VoiceChat() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-8 transition-all duration-300">
-        {/* Header */}
-        <div className="mb-6 text-center">
-          <h1 className="text-3xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
-            VibeTalk
-          </h1>
-          <p className="text-sm text-gray-400">anonymous voice chats</p>
+      <div className="w-full max-w-md bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-8 transition-all duration-300 relative">
+        {/* Header with Home button */}
+        <div className="mb-6 flex items-center justify-between">
+          <button
+            onClick={onGoHome}
+            className="flex items-center text-gray-400 hover:text-gray-600 transition text-sm font-medium"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Home
+          </button>
+          <div className="text-center flex-1">
+            <h1 className="text-3xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
+              VibeTalk
+            </h1>
+            <p className="text-sm text-gray-400">anonymous voice chats</p>
+          </div>
+          <div className="w-12" /> {/* Spacer for alignment */}
         </div>
         {renderContent()}
       </div>
