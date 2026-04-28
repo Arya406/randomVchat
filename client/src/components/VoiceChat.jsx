@@ -55,20 +55,24 @@ function VoiceChat({ onGoHome }) {
   const start = async () => {
     try {
       setState("requesting-mic");
-
-      localStream.current = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
-
-      // Unlock audio for autoplay policy (keeping your fix)
-      const dummy = new Audio();
-      await dummy.play().catch(() => {});
-
+  
+      const streamPromise = navigator.mediaDevices.getUserMedia({ audio: true });
+  
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Mic timeout")), 5000)
+      );
+  
+      localStream.current = await Promise.race([streamPromise, timeout]);
+  
+      console.log("Mic granted");
+  
       setState("searching");
       socket.emit("start");
+  
     } catch (err) {
-      console.error(err);
+      console.error("Mic failed:", err);
       setState("idle");
+      alert("Microphone access failed. Please allow mic.");
     }
   };
 
