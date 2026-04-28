@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
+import { useNavigate } from "react-router-dom";
 
 const socket = io("https://randomvchat-1.onrender.com");
 
@@ -302,14 +303,15 @@ function VoiceChat({ onGoHome }) {
         return renderIdle();
     }
   };
-
+  const navigate = useNavigate();
   return (
+    
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-gray-100 p-8 transition-all duration-300 relative">
         {/* Header with Home button */}
         <div className="mb-6 flex items-center justify-between">
           <button
-            onClick={onGoHome}
+            onClick={() => navigate("/")}
             className="flex items-center text-gray-400 hover:text-gray-600 transition text-sm font-medium"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">

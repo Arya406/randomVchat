@@ -2,164 +2,196 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
+// Extremely lightweight, one-time animations to prevent lag
+const fadeUp = {
+  hidden: { opacity: 0, y: 15 },
   visible: (i = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.15, duration: 0.6, ease: "easeOut" },
+    transition: { delay: i * 0.1, duration: 0.4, ease: "easeOut" },
   }),
 };
 
-function Feature({ icon, title, desc }) {
+// Minimalist SVG Icons
+const Icons = {
+  Mic: (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+      <line x1="12" x2="12" y1="19" y2="22" />
+    </svg>
+  ),
+  Globe: (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+      <path d="M2 12h20" />
+    </svg>
+  ),
+  Incognito: (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+      <path d="M22 11v1a10 10 0 1 1-9-10" />
+      <path d="M22 4L12 14.01l-3-3" />
+    </svg>
+  ),
+  Fast: (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
+  )
+};
+
+// Clean Feature Component (No shadows, no blurs)
+function Feature({ icon, title, desc, index }) {
   return (
     <motion.div
-      variants={fadeInUp}
+      custom={index}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, margin: "-50px" }}
-      custom={0}
-      className="relative group bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-md border border-gray-200/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+      variants={fadeUp}
+      className="p-8 border border-neutral-200 bg-white rounded-2xl hover:border-neutral-400 transition-colors duration-200"
     >
-      <div className="text-4xl mb-4">{icon}</div>
-      <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>
-      <p className="text-gray-600 leading-relaxed">{desc}</p>
-      <div className="absolute inset-0 rounded-2xl ring-1 ring-transparent group-hover:ring-purple-200/50 transition-all duration-500 pointer-events-none" />
+      <div className="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-900 mb-6">
+        {icon}
+      </div>
+      <h3 className="text-xl font-semibold text-neutral-900 mb-2">{title}</h3>
+      <p className="text-neutral-500 leading-relaxed">{desc}</p>
     </motion.div>
   );
 }
 
-function Landing({ onStart }) {
-    const navigate = useNavigate();
+function Landing() {
+  const navigate = useNavigate();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-rose-50 text-gray-900 flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-[#FAFAFA] text-neutral-900 font-sans selection:bg-neutral-900 selection:text-white flex flex-col">
+      
+      {/* Navbar - Minimal */}
+      <header className="w-full max-w-6xl mx-auto px-6 py-6 flex justify-between items-center bg-transparent">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-neutral-900 rounded-md flex items-center justify-center text-white">
+            {Icons.Mic}
+          </div>
+          <span className="text-xl font-bold tracking-tight">VibeTalk</span>
+        </div>
+        
+        <div className="flex items-center gap-6 text-sm font-medium text-neutral-500">
+          <a href="#how-it-works" className="hover:text-neutral-900 transition-colors">How it works</a>
+          <a href="#features" className="hover:text-neutral-900 transition-colors">Features</a>
+        </div>
+      </header>
 
-      {/* Navbar */}
-      <motion.header
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="flex justify-between items-center px-6 md:px-10 py-4 border-b border-gray-100/80 bg-white/70 backdrop-blur-md sticky top-0 z-50"
-      >
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
-          VibeTalk
-        </h1>
-
-        <button
-          onClick={onStart}
-          className="relative px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-500 text-white font-medium rounded-full shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200"
+      {/* Hero Section - High contrast, typography focused */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-20 text-center max-w-4xl mx-auto w-full">
+        <motion.div
+          custom={0}
+          initial="hidden"
+          animate="visible"
+          variants={fadeUp}
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-100 border border-neutral-200 text-xs font-medium text-neutral-600 mb-8"
         >
-          Start
-        </button>
-      </motion.header>
+          <span className="w-2 h-2 rounded-full bg-green-500"></span>
+          Strangers online now
+        </motion.div>
 
-      {/* Hero */}
-      <section className="flex flex-col items-center justify-center text-center flex-1 px-6 py-24 md:py-32 relative">
-        {/* Decorative background blobs */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" />
-        <div className="absolute bottom-10 right-10 w-80 h-80 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" />
-
-        <motion.h2
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="text-5xl md:text-6xl font-extrabold leading-tight max-w-3xl bg-gradient-to-br from-gray-800 to-gray-600 bg-clip-text text-transparent"
+        <motion.h1 
+          custom={1}
+          initial="hidden"
+          animate="visible"
+          variants={fadeUp}
+          className="text-5xl md:text-7xl font-bold tracking-tight text-neutral-900 leading-[1.1] mb-6"
         >
-          Talk to strangers. <br />
-          Share random thoughts.
-        </motion.h2>
+          Talk to strangers. <br className="hidden md:block" />
+          <span className="text-neutral-400">Keep it simple.</span>
+        </motion.h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.4 }}
-          className="mt-6 text-lg md:text-xl text-gray-500 max-w-2xl"
+        <motion.p 
+          custom={2}
+          initial="hidden"
+          animate="visible"
+          variants={fadeUp}
+          className="text-lg md:text-xl text-neutral-500 max-w-2xl mb-10"
         >
-          A safe, anonymous space to connect worldwide. <br className="hidden sm:block" />
-          No profiles. No pressure. Just real conversations.
+          No profiles, no cameras, no endless swiping. Just one click to start a real, anonymous voice conversation with someone new.
         </motion.p>
 
         <motion.button
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.7 }}
+          custom={3}
+          initial="hidden"
+          animate="visible"
+          variants={fadeUp}
           onClick={() => navigate("/chat")}
-          className="mt-10 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-500 text-white text-lg font-semibold rounded-full shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
+          className="group px-8 py-4 bg-neutral-900 text-white text-lg font-medium rounded-full hover:bg-neutral-800 transition-colors active:scale-[0.98] flex items-center gap-3"
         >
-          <span className="relative">
-            🎙️
-            <span className="absolute -top-1 -right-1 h-2.5 w-2.5 bg-green-400 rounded-full animate-ping" />
-          </span>
-          Start Talking
+          {Icons.Mic} Start Chatting
+          <span className="text-neutral-400 group-hover:text-white transition-colors">→</span>
         </motion.button>
-      </section>
+      </main>
 
-      {/* How It Works */}
-      <section className="py-20 px-6 bg-white/60 backdrop-blur-sm">
-        <div className="max-w-5xl mx-auto text-center">
-          <motion.h3
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            className="text-3xl md:text-4xl font-bold text-gray-800 mb-14"
-          >
-            How it works
-          </motion.h3>
-
-          <div className="grid md:grid-cols-3 gap-8">
+      {/* How it Works - Simple Step Text */}
+      <section id="how-it-works" className="w-full bg-white border-y border-neutral-200 py-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-2xl font-bold mb-12 text-center">How it works</h2>
+          
+          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {[
-              { step: "1", icon: "👆", title: "Click Start", desc: "Jump in with one tap. No registration needed." },
-              { step: "2", icon: "🔗", title: "Get Matched", desc: "We instantly connect you with a random person." },
-              { step: "3", icon: "💬", title: "Start Talking", desc: "Voice, text, or just vibe — your choice." },
+              { step: "01", title: "Click Start", desc: "No signup required. Just hit the button." },
+              { step: "02", title: "Instant Match", desc: "We connect you with a random stranger globally." },
+              { step: "03", title: "Start Talking", desc: "Your mic is live. Enjoy the conversation." }
             ].map((item, i) => (
-              <motion.div
+              <motion.div 
                 key={item.step}
-                variants={fadeInUp}
+                custom={i}
                 initial="hidden"
                 whileInView="visible"
-                viewport={{ once: true }}
-                custom={i}
-                className="relative bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={fadeUp}
+                className="flex flex-col items-center text-center"
               >
-                <div className="text-4xl mb-4">{item.icon}</div>
-                <span className="inline-block mb-3 text-xs font-bold tracking-wider text-purple-500 bg-purple-50 px-3 py-1 rounded-full">
-                  STEP {item.step}
-                </span>
-                <h4 className="text-xl font-semibold text-gray-800 mb-2">{item.title}</h4>
-                <p className="text-gray-500">{item.desc}</p>
+                <span className="text-neutral-300 font-mono text-sm mb-4">{item.step}</span>
+                <h4 className="text-lg font-semibold mb-2">{item.title}</h4>
+                <p className="text-neutral-500 text-sm">{item.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="px-6 py-20">
-        <div className="max-w-5xl mx-auto">
-          <motion.h3
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-14"
-          >
-            Why VibeTalk?
-          </motion.h3>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <Feature icon="🌍" title="Global" desc="Meet people from every corner of the world instantly." />
-            <Feature icon="🎧" title="Voice First" desc="Real conversations through voice for a human touch." />
-            <Feature icon="⚡" title="Instant" desc="No signup, no waiting. One click and you’re connected." />
-          </div>
+      {/* Features - Clean Grid */}
+      <section id="features" className="w-full py-24 px-6 max-w-6xl mx-auto">
+        <h2 className="text-2xl font-bold mb-12 text-center">Why VibeTalk?</h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          <Feature 
+            index={0}
+            icon={Icons.Globe} 
+            title="Global Reach" 
+            desc="Connect with people from completely different cultures and backgrounds in seconds." 
+          />
+          <Feature 
+            index={1}
+            icon={Icons.Incognito} 
+            title="100% Anonymous" 
+            desc="We don't collect your data. There are no profiles. Your identity stays totally private." 
+          />
+          <Feature 
+            index={2}
+            icon={Icons.Fast} 
+            title="Zero Friction" 
+            desc="Built for speed. A lightweight platform meaning instant connections and clear audio." 
+          />
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="text-center text-sm text-gray-400 py-8 border-t border-gray-200/70 bg-white/40 backdrop-blur-sm">
-        <p className="mb-1">Built for fun • Stay respectful • Stay anonymous</p>
-        <p>© {new Date().getFullYear()} VibeTalk</p>
+      <footer className="w-full py-8 px-6 border-t border-neutral-200 flex flex-col md:flex-row justify-between items-center text-sm text-neutral-500 max-w-6xl mx-auto gap-4">
+        <p>© {new Date().getFullYear()} VibeTalk. All rights reserved.</p>
+        <div className="flex gap-6">
+          <a href="#" className="hover:text-neutral-900 transition-colors">Privacy</a>
+          <a href="#" className="hover:text-neutral-900 transition-colors">Terms</a>
+        </div>
       </footer>
+
     </div>
   );
 }
