@@ -187,8 +187,7 @@ function Landing() {
       <footer className="w-full py-8 px-6 border-t border-neutral-200 flex flex-col md:flex-row justify-between items-center text-sm text-neutral-500 max-w-6xl mx-auto gap-4">
         <p>© {new Date().getFullYear()} VibeTalk. All rights reserved.</p>
         <div className="flex gap-6">
-          <a href="#" className="hover:text-neutral-900 transition-colors">Privacy</a>
-          <a href="#" className="hover:text-neutral-900 transition-colors">Terms</a>
+          
         </div>
       </footer>
 
