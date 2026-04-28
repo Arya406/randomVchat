@@ -89,19 +89,32 @@ function VoiceChat({ onGoHome }) {
     }
 
     peerConnection.current = new RTCPeerConnection({
-      iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
-        {
-          urls: [
-            "turn:openrelay.metered.ca:80",
-            "turn:openrelay.metered.ca:443",
-            "turn:openrelay.metered.ca:3478",
-          ],
-          username: "openrelayproject",
-          credential: "openrelayproject",
-        },
-      ],
-    });
+        iceServers: [
+          {
+            urls: "stun:stun.relay.metered.ca:80",
+          },
+          {
+            urls: "turn:global.relay.metered.ca:80",
+            username: "7978757a10e7eed91f95d651",
+            credential: "A8bj1DAPaq+wxT+3",
+          },
+          {
+            urls: "turn:global.relay.metered.ca:80?transport=tcp",
+            username: "7978757a10e7eed91f95d651",
+            credential: "A8bj1DAPaq+wxT+3",
+          },
+          {
+            urls: "turn:global.relay.metered.ca:443",
+            username: "7978757a10e7eed91f95d651",
+            credential: "A8bj1DAPaq+wxT+3",
+          },
+          {
+            urls: "turns:global.relay.metered.ca:443?transport=tcp",
+            username: "7978757a10e7eed91f95d651",
+            credential: "A8bj1DAPaq+wxT+3",
+          },
+        ],
+      });
 
     localStream.current.getTracks().forEach((track) => {
       peerConnection.current.addTrack(track, localStream.current);
