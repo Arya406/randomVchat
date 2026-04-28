@@ -54,6 +54,14 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("stop", () => {
+    if (socket.partner) {
+      socket.partner.emit("partner-disconnected");
+      socket.partner.partner = null;
+    }
+    socket.partner = null;
+  });
+
   socket.on("next", () => {
     console.log("Next:", socket.id);
 
