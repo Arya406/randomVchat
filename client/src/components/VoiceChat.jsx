@@ -87,18 +87,21 @@ function VoiceChat() {
     }
 
     peerConnection.current = new RTCPeerConnection({
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
-    });
-
-    localStream.current.getTracks().forEach((track) => {
-      peerConnection.current.addTrack(track, localStream.current);
-    });
-
-    peerConnection.current.ontrack = (event) => {
-      const audio = new Audio();
-      audio.srcObject = event.streams[0];
-      audio.play();
-    };
+        iceServers: [
+          { urls: "stun:stun.l.google.com:19302" },
+      
+          {
+            urls: "turn:openrelay.metered.ca:80",
+            username: "openrelayproject",
+            credential: "openrelayproject"
+          },
+          {
+            urls: "turn:openrelay.metered.ca:443",
+            username: "openrelayproject",
+            credential: "openrelayproject"
+          }
+        ]
+      });
 
     peerConnection.current.onicecandidate = (event) => {
       if (event.candidate) {
